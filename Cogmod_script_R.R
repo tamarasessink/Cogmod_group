@@ -21,8 +21,8 @@ mean_dial_pp <- aggregate(dialingtime_dial$timeRelativeToTrialStart, list(dialin
 mean_steer_pp <- aggregate(dialingtime_steer$timeRelativeToTrialStart, list(dialingtime_steer$pp), mean)
 
 # Grand Mean
-grand_mean_dial = mean(mean_dial_pp$x)
-grand_mean_steer = mean(mean_steer_pp$x)
+grand_mean_dial = mean(mean_dial_pp$x)/1000
+grand_mean_steer = mean(mean_steer_pp$x)/1000
 
 # Grand sd
 grand_sd_dial = sd(mean_dial_pp$x)
@@ -39,11 +39,9 @@ lanedev_df <- keyPressDataWithLaneDeviation
 devDial <- dualDial[dualDial$partOfExperiment == "dualDialFocus", ]
 devSteer <- dualSteer[dualSteer$partOfExperiment == "dualSteerFocus", ]
 
-
 # Apply absolute value
 devDial$lanePosition <- abs(devDial$lanePosition)
 devSteer$lanePosition <- abs(devSteer$lanePosition)
-
 
 # Grand Mean
 grand_mean_dialdev = mean(devDial$lanePosition)
@@ -60,36 +58,53 @@ grand_se_steerdev = grand_sd_steerdev/(sqrt(nrow(devDial)))
 ######## 1C ########
 
 # Calculate avg per participant per digit
-dial <- aggregate(devDial$lanePosition, list(devDial$Event2,devDial$pp), mean)
-steer <- aggregate(devSteer$lanePosition, list(devSteer$Event2,devSteer$pp), mean)
+dial <- aggregate(devDial$lanePosition, list(devDial$phoneNrLengthAfterKeyPress,devDial$pp), mean)
+steer <- aggregate(devSteer$lanePosition, list(devSteer$phoneNrLengthAfterKeyPress,devSteer$pp), mean)
 
-dial2 <- aggregate(devDial$timeRelativeToTrialStart/1000, list(devDial$Event2,devDial$pp), mean) 
-steer2 <- aggregate(devSteer$timeRelativeToTrialStart/1000, list(devSteer$Event2,devSteer$pp), mean)
+dial2 <- aggregate(devDial$timeRelativeToTrialStart/1000, list(devDial$phoneNrLengthAfterKeyPress,devDial$pp), mean) 
+steer2 <- aggregate(devSteer$timeRelativeToTrialStart/1000, list(devSteer$phoneNrLengthAfterKeyPress,devSteer$pp), mean)
 
 # Avg across participant
-dial_acrosspart <- aggregate(dial$x, list(dial$Group.1), mean) 
-steer_acrosspart <- aggregate(steer$x, list(steer$Group.1), mean) 
+dial_acrosspart <- aggregate(dial$x, list(dial$Group.1), mean) # y
+steer_acrosspart <- aggregate(steer$x, list(steer$Group.1), mean) # y
 dial2_sd <- aggregate(dial$x, list(dial$Group.1), sd) 
 steer2_sd <- aggregate(steer$x, list(steer$Group.1), sd) 
 
-dial2 <- aggregate(dial2$x, list(dial2$Group.1), mean) 
-steer2 <- aggregate(steer2$x, list(steer2$Group.1), mean) 
-
-
-# sort order
-dial3 <- sort(dial2$x, decreasing = FALSE, na.last = TRUE)
-steer3 <- sort(steer2$x, decreasing = FALSE, na.last = TRUE)
+dial2 <- aggregate(dial2$x, list(dial2$Group.1), mean) # x
+steer2 <- aggregate(steer2$x, list(steer2$Group.1), mean) # x
 
 # Plot lateral deviation over dialingTime
-plot(dial2$x,dial_acrosspart$x,col="blue",type="p",ylim=0:1, xlab='dialingTime (s)', ylab='Lateral deviation (m)')
-par(new=T)
-plot(steer2$x,steer_acrosspart$x,col="green", type="p",axes=F, xlab='', ylab='')
-
+plot(dial2$x,dial_acrosspart$x,col="blue",type="b",ylim = c(0,2), xlim = c(0,10), xlab='dialingTime (s)', ylab='Lateral deviation (m)')
 arrows(x0=dial2$x, y0=dial_acrosspart$x-dial2_sd$x, x1=dial2$x, y1=dial_acrosspart$x+dial2_sd$x, code=3, angle=90, length=0.005)
+
+par(new=T)
+plot(steer2$x,steer_acrosspart$x,col="green", type="b",axes=F, xlab='', ylab='')
+legend("topleft", legend=c("Dial", "Steer"),
+       col=c("blue", "green"), lty=1:2, cex=0.8)
+
 arrows(x0=steer2$x, y0=steer_acrosspart$x-steer2_sd$x, x1=steer2$x, y1=steer_acrosspart$x+steer2_sd$x, code=3, angle=90, length=0.005)
 
 ## ggplot
-# line
-ggplot(dial3) +
-  geom_bar( aes(x=name, y=value), stat="identity", fill="skyblue", alpha=0.5) +
-  geom_linerange( aes(x=name, ymin=value-sd, ymax=value+sd), colour="orange", alpha=0.9, size=1.3)
+vec <- rep(c(0),each=13)
+vec1 <- rep(c(1),each=13)
+dial_df <- data.frame(dial2$x,dial_acrosspart$x,vec)
+steer_df <- data.frame(steer2$x,steer_acrosspart$x,vec1)
+names(dial_df) <- names(steer_df) 
+bothdfs <- rbind(dial_df, steer_df)
+
+# SE
+se_dial = dial2_sd$x/(sqrt(nrow(dial2_sd)))
+se_steer = steer2_sd$x/(sqrt(nrow(steer2_sd)))
+
+bothse <- rbind(se_dial, se_steer)
+
+
+ggplot(data = bothdfs, mapping = aes(x = steer2.x, y = steer_acrosspart.x, colour=vec1, group = vec1)) + geom_line() + geom_point() + 
+  geom_errorbar(aes(ymin=steer_acrosspart.x-bothse, ymax=steer_acrosspart.x+bothse), width=.1) +
+  geom_line() +
+  geom_point() + theme(legend.position=c(1,0))   
+
+# 1D
+# People in the steering focused condition have no lane deviation increase between digit 6-7 which means that they did take a break from dialing to focus on steering. 
+# In the dialing focused condition, the lane deviation did increase a lot between digit 6-7 which means that the average participant did not take a break from dialing. 
+
