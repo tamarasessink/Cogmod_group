@@ -136,3 +136,25 @@ transposedData <- melt(transposedData, id.vars="ID")
 simulatePlot <- ggplot(transposedData, aes(x=as.numeric(ID), y= value, colour = variable)) + 
   xlab('Trial Time(ms)') + ylab('Lateral Position (m)') + theme(legend.position = "none") + geom_line()
 simulatePlot
+
+3. 
+singletask <- subset(notypingerrors, partOfExperiment == "singleDialing2")
+View(singletask)
+keypressespp <- aggregate(singletask$timeRelativeToTrialStart, list("key"= singletask$phoneNrLengthAfterKeyPress, "pp" = singletask$pp), mean)
+keypresses <- aggregate(keypressespp$x, list("key"= keypressespp$key),mean)
+View(keypressespp)
+
+#sum of interval per key
+sumlistintervalperkey <- c()
+sumlistintervalperkey <- keypresses$x
+print(sumlistintervalperkey)
+intervalperkey <- c()
+
+# calculate the time for each key seperate
+for (number in 1:length(keypresses$key)-1)
+{
+  answer <- sumlistintervalperkey[number+1] - sumlistintervalperkey[number]
+  intervalperkey[number] <- answer
+}
+# mean of keypresses
+round(mean(intervalperkey),digits=0)
