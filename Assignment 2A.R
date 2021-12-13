@@ -19,33 +19,33 @@ View(simualted_noise[[1]])
 
 # RDM neural data
 RDM_neural_data <- list()
-RDM_neural_data[[1]] <- 1 - cor(tableResponses, method = c("pearson"))
-View(RDM_neural_data[[1]])
+RDM_neural_data <- 1 - cor(t(tableResponses), method = c("pearson"))
+View(RDM_neural_data)
 
 # RDM data participants
 RDM_participants <- list()
 
 for(i in 1:12){
-  RDM_participants[[i]] <- 1 - cor(simualted_noise[[i]], method = c("pearson"))
+  RDM_participants[[i]] <- 1 - cor(t(simualted_noise[[i]]), method = c("pearson"))
 }
 
 # melting a dataframe, to compare all elements with each other
-neural_data <- melt(RDM_neural_data[[1]])
+neural_data <- melt(RDM_neural_data)
 View(neural_data)
-# singele example subject thus those one of 1-12
+# single example subject thus those one of 1-12
 participant5 <- melt(RDM_participants[[5]])
 View(participant5)
 
 # heatmap neural data
 plot1 <- ggplot(neural_data, aes(x = Var1,
                   y = Var2,
-                  fill = value))+ geom_tile()+ scale_fill_distiller(palette = "Spectral")+ ggtitle("RDM Neural data")+ labs(fill = "Dissimilarity")
+                  fill = value))+ geom_tile()+ scale_fill_distiller(palette = "Spectral")+ ggtitle("RDM Original data")+ labs(fill = "Dissimilarity")
 plot(plot1)
 
 # heatmap participant data
 plot2 <- ggplot(participant5, aes(x = Var1, 
                                   y = Var2, 
-                                  fill = value))+ geom_tile()+ scale_fill_distiller(palette = "Spectral")+ ggtitle("RDM Human data")+ labs(fill = "Dissimilarity")
+                                  fill = value))+ geom_tile()+ scale_fill_distiller(palette = "Spectral")+ ggtitle("RDM data of single particiant with noise")+ labs(fill = "Dissimilarity")
 plot(plot2)
 
 # average of all the 12 participants
@@ -66,6 +66,5 @@ for (par in 1:12)
 # Heatmap for average
 plot3 <- ggplot(meanparticipants, aes(x = Var1, 
                                   y = Var2, 
-                                  fill = value))+ geom_tile()+ scale_fill_distiller(palette = "Spectral")+ ggtitle("RDM average human data")+ labs(fill = "Dissimilarity")
+                                  fill = value))+ geom_tile()+ scale_fill_distiller(palette = "Spectral")+ ggtitle("RDM average of the participants with noise")+ labs(fill = "Dissimilarity")
 plot(plot3)
-
